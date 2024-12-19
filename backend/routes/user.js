@@ -4,8 +4,9 @@ const z = require('zod');
 const router = express.Router();
 const { User, Account } = require('../db');
 const { JWT_SECRET } = require('../config');
+const bcrypt = require("bcrypt");
 
-const userBody = z.object({
+const signUpBody = z.object({
    firstName: z.string(),
    lastName: z.string(),
    username: z.string().email(),
@@ -13,7 +14,7 @@ const userBody = z.object({
 });
 
 router.post('/signup', async (req, res) => {
-    const { success } = userBody.safeParse(req.body);
+    const { success } = signUpBody.safeParse(req.body);
 
     if (!success) {
         return res.status(411).json({
@@ -33,11 +34,13 @@ router.post('/signup', async (req, res) => {
         }
 
         // Create a new user
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(password, salt);
         const user = await User.create({
             firstName: firstName,
             lastName: lastName,
             username: username,
-            password: password
+            password: hashedPassword
         });
 
         const userId = user._id;
@@ -55,8 +58,7 @@ router.post('/signup', async (req, res) => {
         // Generate JWT token
         const token = jwt.sign({
             userId,
-            fullName,
-            cartItems
+            fullName
         }, JWT_SECRET);
 
         res.status(200).json({
@@ -70,5 +72,47 @@ router.post('/signup', async (req, res) => {
         });
     }
 });
+const signInBody =z.object({
+    username: z.string(),
+    password: z.string()
+})
+
+router.get("/signin", async(req,res)=>{
+    const { success } = signInBody.safeParse(req.body);
+
+    if(!success){
+        res.status(411).json({
+            message: "Invalid Inputs"
+        });
+    }
+    const {username , password} = req.body;
+   const user = await User.findOne({
+        username
+       })
+
+       if(!user){
+        res.status(401).json({
+            message: "Invalid username"
+        })
+       }
+
+    const isMatch = await bcrypt.compare(password, user.password)
+    if (!isMatch) {
+        return res.status(401).json({ error: 'Invalid username or password' });
+    }
+      
+        const fullName = `${user.firstName} ${user.lastName}`;
+        const token = jwt.sign({
+            username,
+            fullName
+        }, JWT_SECRET)
+
+        res.status(200).json({
+            message: "Success",
+            token: token
+        });
+    
+    
+})
 
 module.exports = router;
