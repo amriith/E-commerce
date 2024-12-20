@@ -128,13 +128,25 @@ router.put("/update", authMiddleWare, async (req, res)=>{
             message: "Please enter valid credentials! "
         })
       }
-    try { const result = User.updateOne(
+    try { 
+        const updateData = { ...data };
+
+    if(updateData.password){
+        const salt = await bcrypt.genSalt(10);
+        updateData.password = await bcrypt.hash(updateData.password, salt);
+    }
+        const result =await User.updateOne(
         { _id: req.userId }, 
-        { $set: data } 
+        { $set: updateData } 
     )
+    if (result.matchedCount === 0) {
+        return res.status(404).json({
+            message: "No user found with the given ID."
+        });
+    }    
       if(result.modifiedCount === 0 ){
         return res.status(404).json({
-            message: "No user found or no changes made."
+            message: "No changes made."
         });
       }
       res.status(200).json({
