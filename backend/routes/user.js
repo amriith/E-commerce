@@ -5,6 +5,7 @@ const router = express.Router();
 const { User, Account } = require('../db');
 const { JWT_SECRET } = require('../config');
 const bcrypt = require("bcrypt");
+const authMiddleWare = require("../middleware");
 
 const signUpBody = z.object({
    firstName: z.string(),
@@ -113,6 +114,38 @@ router.post("/signin", async(req,res)=>{
         });
     
     
+})
+const updatedBody = z.object({
+   password: z.string().optional(),
+    firstname: z.string().optional(),
+    lastName: z.string().optional()
+ })
+
+router.put("/update", authMiddleWare, async (req, res)=>{
+    const {success, data} = updatedBody.safeParse(req.body);
+     if(!success){
+        return res.status(400).json({
+            message: "Please enter valid credentials! "
+        })
+      }
+    try { const result = User.updateOne(
+        { _id: req.userId }, 
+        { $set: data } 
+    )
+      if(result.modifiedCount === 0 ){
+        return res.status(404).json({
+            message: "No user found or no changes made."
+        });
+      }
+      res.status(200).json({
+        message: "User details successfully updated"
+      })}
+      catch (error){
+        res.status(500).json({
+            message: "Internal server error",
+            error: error.message
+        });
+      }
 })
 
 module.exports = router;
