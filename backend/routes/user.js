@@ -14,15 +14,15 @@ const signUpBody = z.object({
 });
 
 router.post('/signup', async (req, res) => {
-    const { success } = signUpBody.safeParse(req.body);
+    const { success ,data} = signUpBody.safeParse(req.body);
 
     if (!success) {
-        return res.status(411).json({
+        return res.status(400).json({
             message: "Invalid Inputs"
         });
     }
 
-    const { firstName, lastName, username, password } = req.body;
+    const { firstName, lastName, username, password } = data;
 
     try {
         // Check if user already exists
@@ -77,28 +77,28 @@ const signInBody =z.object({
     password: z.string()
 })
 
-router.get("/signin", async(req,res)=>{
-    const { success } = signInBody.safeParse(req.body);
+router.post("/signin", async(req,res)=>{
+    const { success ,data} = signInBody.safeParse(req.body);
 
     if(!success){
-        res.status(411).json({
+        res.status(400).json({
             message: "Invalid Inputs"
         });
     }
-    const {username , password} = req.body;
+    const {username , password} = data;
    const user = await User.findOne({
         username
        })
 
        if(!user){
-        res.status(401).json({
+        return res.status(401).json({
             message: "Invalid username"
         })
        }
 
     const isMatch = await bcrypt.compare(password, user.password)
     if (!isMatch) {
-        return res.status(401).json({ error: 'Invalid username or password' });
+        return res.status(401).json({ error: 'Invalid password' });
     }
       
         const fullName = `${user.firstName} ${user.lastName}`;
