@@ -21,7 +21,8 @@ router.post("/add-product", adminMiddleware, async (req, res) => {
     const {success , data} = productSchema.safeParse(req.body);
     if(!success){
         return res.status(400).json({
-            message: "Invalid Inputs, verify the inputs"
+            message: "Invalid Inputs, verify the inputs",
+            errors: error.errors
         })
 
     }
@@ -29,14 +30,15 @@ router.post("/add-product", adminMiddleware, async (req, res) => {
        
    try { const productAlreadyExists = await Product.findOne({name,category})
     if(productAlreadyExists){
-       variations.forEach(async (variation =>{
+       variations.forEach(variation => {
               const existingVariation = productAlreadyExists.variations.find( (v)=> v.size === variation.size && v.color === variation.color);
               if(existingVariation){
                    existingVariation.stock += variation.stock;
               } else {
                 productAlreadyExists.variations.push(variation);
               }
-       }) )
+       }) 
+       await productAlreadyExists.save();
     } else {
        const createdProduct = await Product.create({
             name,
@@ -56,7 +58,7 @@ router.post("/add-product", adminMiddleware, async (req, res) => {
     catch(err){
         console.log(err)
         return res.status(500).json({
-            message: "Internal Server Error"
+            message: "Error adding/updating product: " + err
         })
     };
 })

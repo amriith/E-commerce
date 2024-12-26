@@ -48,7 +48,7 @@ router.post('/signup', async (req, res) => {
 
         const userId = user._id;
         const fullName = `${user.firstName} ${user.lastName}`;
-
+        const userRole = user.role;
         // Create a new account
         const account = await Account.create({
             userId: userId,
@@ -61,7 +61,8 @@ router.post('/signup', async (req, res) => {
         // Generate JWT token
         const token = jwt.sign({
             userId,
-            fullName
+            fullName,
+            userRole
         }, JWT_SECRET);
 
         res.status(200).json({
@@ -105,7 +106,11 @@ router.post("/signin", async(req,res)=>{
     }
       
         const fullName = `${user.firstName} ${user.lastName}`;
+        const userRole = user.role;
+        const userId = user._id;
         const token = jwt.sign({
+            userId, 
+            userRole,
             username,
             fullName
         }, JWT_SECRET)
