@@ -5,13 +5,14 @@ const router = express.Router();
 const { User, Account } = require('../db');
 const { JWT_SECRET } = require('../config');
 const bcrypt = require("bcrypt");
-const authMiddleWare = require("../middleware");
+const {authMiddleWare} = require("../middleware");
 
 const signUpBody = z.object({
    firstName: z.string(),
    lastName: z.string(),
    username: z.string().email(),
-   password: z.string()
+   password: z.string(),
+   role: z.enum(['admin', 'user']).optional() 
 });
 
 router.post('/signup', async (req, res) => {
@@ -23,7 +24,7 @@ router.post('/signup', async (req, res) => {
         });
     }
 
-    const { firstName, lastName, username, password } = data;
+    const { firstName, lastName, username, password, role} = data;
 
     try {
         // Check if user already exists
@@ -41,7 +42,8 @@ router.post('/signup', async (req, res) => {
             firstName: firstName,
             lastName: lastName,
             username: username,
-            password: hashedPassword
+            password: hashedPassword,
+             role: role || 'user'
         });
 
         const userId = user._id;

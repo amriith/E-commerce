@@ -18,10 +18,11 @@ const userSchema =  mongoose.Schema({
     username: String,
     password : String,
     firstName : String,
-    lastName: String
+    lastName: String,
+    role: { type: String, enum: ['admin', 'user'], default: 'user' }
 })
 
-const accountSchema = mongoose.Schema({
+const accountSchema =new mongoose.Schema({
     userId: {
     type:mongoose.Schema.Types.ObjectId,
     ref: "User",
