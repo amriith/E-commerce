@@ -101,9 +101,12 @@ router.get("/get-products", async (req, res) => {
                 price: product.price,
                 category: product.category,
                 subCategory: product.subCategory,
-                size: product.variations?.size,
-                color: product.variations?.color,
-            })),
+                variations: product.variations.map(variation => ({
+                    size: variation.size,
+                    color: variation.color
+                   
+                }))
+            }))
         });
     } catch (err) {
         console.error(err);
