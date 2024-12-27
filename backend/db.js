@@ -19,7 +19,13 @@ const userSchema =  mongoose.Schema({
     password : String,
     firstName : String,
     lastName: String,
-    role: { type: String, enum: ['admin', 'user'], default: 'user' }
+    role: { type: String, enum: ['admin', 'user'], default: 'user' },
+    cart : [{
+           productId :{ type: mongoose.Schema.Types.ObjectId, ref: "Product", required: true },
+           size: String,
+              color: String,
+                quantity: Number
+    }]
 })
 
 const accountSchema =new mongoose.Schema({
