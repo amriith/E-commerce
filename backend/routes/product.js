@@ -62,4 +62,54 @@ router.post("/add-product", adminMiddleware, async (req, res) => {
         })
     };
 })
+
+
+router.get("/get-products", async (req, res) => {
+    const { filter, category, price } = req.query;
+    const query = {}; // Initialize query object
+
+    try {
+        // Keyword search in name or category
+        if (filter) {
+            query.$or = [
+                { name: { "$regex": filter, "$options": 'i' } },
+                { category: { "$regex": filter, "$options": 'i' } },
+            ];
+        }
+
+        // Category filtering
+        if (category) {
+            query.category = { "$regex": category, "$options": 'i' };
+        }
+
+        // Price range filtering
+        if (price) {
+            const [minPrice, maxPrice] = price.split(',').map(Number);
+            if (!isNaN(minPrice) && !isNaN(maxPrice)) {
+                query.price = { $gte: minPrice, $lte: maxPrice };
+            }
+        }
+
+        // Fetch products from the database
+        const products = await Product.find(query);
+
+        // Respond with filtered products
+        res.json({
+            searchedProducts: products.map(product => ({
+                name: product.name,
+                description: product.description,
+                price: product.price,
+                category: product.category,
+                subCategory: product.subCategory,
+                size: product.variations?.size,
+                color: product.variations?.color,
+            })),
+        });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({
+            message: "Error fetching products: " + err.message,
+        });
+    }
+});
 module.exports = router; 
