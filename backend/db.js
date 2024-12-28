@@ -9,6 +9,7 @@ mongoose.connect('mongodb://localhost:27017/mriid')
         console.error("MongoDB connection error:", err);
     });
 
+    
 
 
 const userSchema =  mongoose.Schema({
