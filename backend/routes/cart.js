@@ -86,5 +86,23 @@ router.get("/view-cart", authMiddleWare, async (req, res) =>{
         res.status(500).json({ message: 'Error fetching cart items', error: err.message });
     }
 })
+router.post("/remove-item", authMiddleWare, async (req,res)=>{
+    const {productId, quantity , size, color} = req.body;
+    const userId = req.userId;
+
+    const user = await User.findById(userId);
+    const product = await Product.findById(productId);
+
+    const variations = product.variations.find(v => v.size===size && v.color === color);
+    if(!variations){
+        return res.status(403).json({
+            message: "Please select a valid size and color"
+        })
+    }
+    const cartItem = user.cart.find(i => i.productId.equals (productId) && i.size===size && i.color === color); 
+    if (cartItem){
+        if
+    }
+})
 
 module.exports = router;
