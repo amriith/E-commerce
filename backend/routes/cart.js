@@ -43,6 +43,7 @@ try{
 
     if(cartItem){
         cartItem.quantity += quantity
+        variations.stock -= quantity;
     }
     else{
         user.cart.push({
@@ -51,8 +52,10 @@ try{
             color,
             quantity
         })
+        variations.stock -= quantity;
     }
     await user.save();
+    await product.save();
     res.status(200).json({
         message: "Product added to cart successfully"
     })
@@ -90,9 +93,13 @@ router.post("/remove-item", authMiddleWare, async (req,res)=>{
     const {productId, quantity , size, color} = req.body;
     const userId = req.userId;
 
+   try {
+    if (!ObjectId.isValid(userId) || !ObjectId.isValid(productId)) {
+        return res.status(400).json({ message: "Invalid userId or productId" });
+    }
     const user = await User.findById(userId);
     const product = await Product.findById(productId);
-
+    
     const variations = product.variations.find(v => v.size===size && v.color === color);
     if(!variations){
         return res.status(403).json({
@@ -100,8 +107,25 @@ router.post("/remove-item", authMiddleWare, async (req,res)=>{
         })
     }
     const cartItem = user.cart.find(i => i.productId.equals (productId) && i.size===size && i.color === color); 
+    if (quantity <= 0) {
+        return res.status(400).json({ message: "Invalid quantity specified" });
+    }
     if (cartItem){
-        if
+        if(cartItem.quantity > quantity){
+            cartItem.quantity -=quantity;
+            variations.stock += quantity;
+        }
+        else {
+           user.cart = user.cart.filter(i => !(i.productId.equals(productId) && i.size === size && i.color === color)); 
+           variations.stock += cartItem.quantity;
+        }
+         await user.save();
+        await product.save();
+
+        res.status(200).json({ message: 'Product removed from cart' });
+    }}
+    catch(err){
+        res.status(500).json({ message: 'Error removing product from cart', error: err.message });
     }
 })
 
