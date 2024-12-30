@@ -9,7 +9,7 @@ mongoose.connect('mongodb://localhost:27017/mriid')
         console.error("MongoDB connection error:", err);
     });
 
-    
+
 
 
 const userSchema =  mongoose.Schema({
@@ -47,7 +47,8 @@ const productSchema = new mongoose.Schema({
     variations: [{
         size: { type: String, required: true },
         color: { type: String, required: true },
-        stock: { type: Number, required: true }
+        stock: { type: Number, required: true },
+        reservedStock: { type: Number }
     }],
     description: String,    
     details: String,
@@ -56,6 +57,15 @@ const productSchema = new mongoose.Schema({
     subCategory: String,
     imageUrl: { type: String } 
 })
+
+productSchema.pre('save', function (next) {
+    this.variations.forEach(variation => {
+        if (variation.reservedStock === undefined) {
+            variation.reservedStock = variation.stock;
+        }
+    });
+    next();
+});
 
 
 const User = mongoose.model("User", userSchema);

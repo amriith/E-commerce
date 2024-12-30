@@ -43,7 +43,7 @@ try{
 
     if(cartItem){
         cartItem.quantity += quantity
-        variations.stock -= quantity;
+        
     }
     else{
         user.cart.push({
@@ -52,8 +52,9 @@ try{
             color,
             quantity
         })
-        variations.stock -= quantity;
+       
     }
+    variations.reservedStock -= quantity;
     await user.save();
     await product.save();
     res.status(200).json({
@@ -99,7 +100,9 @@ router.post("/remove-item", authMiddleWare, async (req,res)=>{
     }
     const user = await User.findById(userId);
     const product = await Product.findById(productId);
-    
+    if (!user || !product) {
+        return res.status(404).json({ message: "User or Product not found" });
+    }
     const variations = product.variations.find(v => v.size===size && v.color === color);
     if(!variations){
         return res.status(403).json({
@@ -111,19 +114,29 @@ router.post("/remove-item", authMiddleWare, async (req,res)=>{
         return res.status(400).json({ message: "Invalid quantity specified" });
     }
     if (cartItem){
+
+
         if(cartItem.quantity > quantity){
             cartItem.quantity -=quantity;
-            variations.stock += quantity;
+            
         }
         else {
            user.cart = user.cart.filter(i => !(i.productId.equals(productId) && i.size === size && i.color === color)); 
-           variations.stock += cartItem.quantity;
+           
         }
+        variations.reservedStock += quantity;
          await user.save();
         await product.save();
 
         res.status(200).json({ message: 'Product removed from cart' });
-    }}
+    }
+    else{
+        return res.status(403).json({
+            message: "Product not found in cart"
+        })
+    }
+
+}
     catch(err){
         res.status(500).json({ message: 'Error removing product from cart', error: err.message });
     }
