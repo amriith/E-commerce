@@ -142,4 +142,29 @@ router.post("/remove-item", authMiddleWare, async (req,res)=>{
     }
 })
 
+ router.post("/checkout", authMiddleWare, async (req, res)=>{
+     const userId = req.userId;
+     const session = await mongoose.startSession();
+     try{
+
+        if(!ObjectId.isValid(userId)){
+            return res.status(403).json({
+                message: "Invalid User Id"
+            })
+        }
+
+        session.startTransaction();
+        const user = await User.findById(userId).populate("cart.productId");
+        if(!user || user.cart.length === 0){
+            return res.status(403).json({
+                message: "User not found/ Cart is empty"
+            })
+        }
+        
+     }
+     catch(err){
+
+     }
+ })
+
 module.exports = router;
