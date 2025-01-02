@@ -85,8 +85,9 @@ const OrderSchema = new mongoose.Schema({
         quantity: { type: Number, required: true }
     }],
     address: { type: String, required: false },
-    totalAmount: { type: Number, required: false },
-    status: { type: String, enum: ['placed', 'shipped', 'delivered'], default: 'placed' }
+    total: { type: Number, required: false },
+    status: { type: String, enum: ['placed', 'shipped', 'delivered'], default: 'placed' },
+   
 });
 
 const Order = mongoose.model("Order", OrderSchema);

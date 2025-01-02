@@ -180,9 +180,9 @@ router.post("/remove-item", authMiddleWare, async (req,res)=>{
 
         const order = await Order.create({
             userId,
-           items : user.cart,
+           products : user.cart,
            address: user.address,
-           total: user.cart.reduce((acc, item) => acc + item.quantity * item.productId.price, 0)
+           total: user.cart.reduce((acc, item) => acc + cartItem.quantity * item.productId.price, 0)
             })
 
         await order.save({ session });
