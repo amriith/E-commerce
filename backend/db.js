@@ -23,7 +23,8 @@ const userSchema =  mongoose.Schema({
            size: String,
               color: String,
                 quantity: Number
-    }]
+    }],
+    address: { type: String, required: false }
 })
 
 const accountSchema =new mongoose.Schema({
@@ -32,7 +33,7 @@ const accountSchema =new mongoose.Schema({
     ref: "User",
     required: true
     },
-    Address: { 
+    address: { 
         type: String,
          required: false 
         },
@@ -67,14 +68,36 @@ productSchema.pre('save', function (next) {
     next();
 });
 
+const OrderSchema = new mongoose.Schema({
+    userId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+        required: true
+    },
+    products: [{
+        productId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Product",
+            required: true
+        },
+        size: { type: String, required: true },
+        color: { type: String, required: true },
+        quantity: { type: Number, required: true }
+    }],
+    address: { type: String, required: false },
+    totalAmount: { type: Number, required: false },
+    status: { type: String, enum: ['placed', 'shipped', 'delivered'], default: 'placed' }
+});
 
+const Order = mongoose.model("Order", OrderSchema);
 const User = mongoose.model("User", userSchema);
 const Account= mongoose.model("Account", accountSchema);
 const Product = mongoose.model("Product", productSchema);
 module.exports= {
     User,
     Account,
-    Product
+    Product,
+    Order
 }
 
 

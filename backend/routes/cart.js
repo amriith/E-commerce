@@ -2,7 +2,7 @@ const express = require("express");
 const mongoose = require('mongoose');
 const router = express.Router();
 const {authMiddleWare} = require("../middleware");
-const {Product ,User} = require("../db");   
+const {Product ,User,Order} = require("../db");   
 const { ObjectId } = mongoose.Types;
 
 router.post("/add-to-cart", authMiddleWare, async (req, res) =>{
@@ -156,15 +156,55 @@ router.post("/remove-item", authMiddleWare, async (req,res)=>{
         session.startTransaction();
         const user = await User.findById(userId).populate("cart.productId");
         if(!user || user.cart.length === 0){
-            return res.status(403).json({
-                message: "User not found/ Cart is empty"
-            })
+            throw new Error("No items in cart/ User not found");
         }
         
-     }
-     catch(err){
+        for (const cartItem of user.cart) {
+            console.log(cartItem);
+            
+        const productVariations = cartItem.productId.variations.find(i=>  i.size === cartItem.size && i.color === cartItem.color);
+          console.log(cartItem);
+        if(!productVariations){
+            throw new Error(`Product variation not found for size ${cartItem.size} and color ${cartItem.color}`);
+            
+        }
+        if(productVariations.stock < cartItem.quantity){
+            throw new Error(
+                `Not enough stock available for ${cartItem.productId.name}. Available stock: ${productVariation.stock}`
+            );
+        }
+        productVariations.stock -= cartItem.quantity;
+        productVariations.reservedStock -= cartItem.quantity;
+      
+       
 
-     }
- })
+        const order = await Order.create({
+            userId,
+           items : user.cart,
+           address: user.address,
+           total: user.cart.reduce((acc, item) => acc + item.quantity * item.productId.price, 0)
+            })
+
+        await order.save({ session });
+        user.cart = [];
+        await user.save({ session });
+        await session.commitTransaction();
+        session.endSession();
+
+        res.status(200).json({
+            message: "Checkout successful",
+            orderId: order._id,
+            total: order.total,
+        });
+    } 
+
+    
+ }
+ catch(err){
+    await session.abortTransaction(); // Rollback all operations
+    session.endSession();
+    res.status(500).json({ message: "Checkout failed", error: err.message });
+ }
+})
 
 module.exports = router;
