@@ -189,7 +189,7 @@ router.post("/remove-item", authMiddleWare, async (req,res)=>{
         user.cart = [];
         await user.save({ session });
         await session.commitTransaction();
-        session.endSession();
+       
 
         res.status(200).json({
             message: "Checkout successful",
@@ -205,6 +205,9 @@ router.post("/remove-item", authMiddleWare, async (req,res)=>{
     session.endSession();
     res.status(500).json({ message: "Checkout failed", error: err.message });
  }
+ finally {
+    session.endSession();
+}
 })
 
 module.exports = router;
