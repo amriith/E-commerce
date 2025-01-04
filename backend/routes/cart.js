@@ -160,10 +160,9 @@ router.post("/remove-item", authMiddleWare, async (req,res)=>{
         }
         
         for (const cartItem of user.cart) {
-            console.log(cartItem);
-            
+           
         const productVariations = cartItem.productId.variations.find(i=>  i.size === cartItem.size && i.color === cartItem.color);
-          console.log(cartItem);
+        
         if(!productVariations){
             throw new Error(`Product variation not found for size ${cartItem.size} and color ${cartItem.color}`);
             

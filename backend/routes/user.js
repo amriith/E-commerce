@@ -63,7 +63,8 @@ router.post('/signup', async (req, res) => {
             userId,
             fullName,
             userRole
-        }, JWT_SECRET);
+        },
+         JWT_SECRET,{ expiresIn: '7h' });
 
         res.status(200).json({
             message: "Success",
@@ -113,7 +114,7 @@ router.post("/signin", async(req,res)=>{
             userRole,
             username,
             fullName
-        }, JWT_SECRET)
+        }, JWT_SECRET, { expiresIn: '7h' });
 
         res.status(200).json({
             message: "Success",
