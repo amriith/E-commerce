@@ -66,10 +66,10 @@ router.post("/add-product", adminMiddleware, async (req, res) => {
 
 router.get("/get-products", async (req, res) => {
     const { filter, category, price } = req.query;
-    const query = {}; // Initialize query object
+    const query = {}; 
 
     try {
-        // Keyword search in name or category
+
         if (filter) {
             query.$or = [
                 { name: { "$regex": filter, "$options": 'i' } },
@@ -82,7 +82,7 @@ router.get("/get-products", async (req, res) => {
             query.category = { "$regex": category, "$options": 'i' };
         }
 
-        // Price range filtering
+      
         if (price) {
             const [minPrice, maxPrice] = price.split(',').map(Number);
             if (!isNaN(minPrice) && !isNaN(maxPrice)) {
@@ -90,10 +90,8 @@ router.get("/get-products", async (req, res) => {
             }
         }
 
-        // Fetch products from the database
         const products = await Product.find(query);
 
-        // Respond with filtered products
         res.json({
             searchedProducts: products.map(product => ({
                 name: product.name,
