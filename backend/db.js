@@ -86,7 +86,7 @@ const OrderSchema = new mongoose.Schema({
     }],
     address: { type: String, required: false },
     total: { type: Number, required: false },
-    status: { type: String, enum: ['placed', 'shipped', 'delivered'], default: 'placed' },
+    status: { type: String, enum: ['placed', 'shipped', 'delivered', 'return'], default: 'placed' },
    
 });
 
