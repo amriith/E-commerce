@@ -33,14 +33,14 @@ router.post("/return", authMiddleWare, async(req, res)=>{
     const {orderId ,productId, quantity , size, color} = req.body;
     const session = await mongoose.startSession();
     try {
-        // Validate IDs
+    
         if (!ObjectId.isValid(userId) || !ObjectId.isValid(productId) || !ObjectId.isValid(orderId)) {
             return res.status(400).json({ message: "Invalid User ID / Order ID / Product ID" });
         }
 
         session.startTransaction();
 
-        // Find the order for the user
+    
         const order = await Order.findOne({ _id: orderId, userId }).populate(
             "products.productId",
             "name price"
@@ -50,7 +50,6 @@ router.post("/return", authMiddleWare, async(req, res)=>{
             throw new Error("Order not found or does not belong to the user");
         }
 
-        // Find the product in the order
         const orderItem = order.products.find(
             (item) =>
                 item.productId._id.equals(productId) &&
@@ -61,29 +60,28 @@ router.post("/return", authMiddleWare, async(req, res)=>{
         if (!orderItem) {
             throw new Error("Product not found in the order");
         }
-
-        // Validate return quantity
+y
         if (quantity > orderItem.quantity || quantity<0) {
             throw new Error(`Invalid return quantity for product ${orderItem.productId.name}`);
         }
 
-        // Calculate refund amount
+ 
         const refundAmount = orderItem.productId.price * quantity;
 
-        // Push return details into the returns array
+    
         const returnDetails = {
             productId,
             size,
             color,
             quantity,
-            status: "pending", // Default status
+            status: "pending", 
             refundAmount,
         };
 
         order.returns.push(returnDetails);
         await order.save({ session });
 
-        // Commit the transaction
+     
         await session.commitTransaction();
 
         res.status(200).json({
@@ -91,11 +89,11 @@ router.post("/return", authMiddleWare, async(req, res)=>{
             returnDetails,
         });
     } catch (err) {
-        // Rollback the transaction on error
+     
         await session.abortTransaction();
         res.status(500).json({ message: "Failed to process return request", error: err.message });
     } finally {
-        // End the session
+  
         session.endSession();
     }
 });
