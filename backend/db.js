@@ -84,8 +84,21 @@ const OrderSchema = new mongoose.Schema({
         color: { type: String, required: true },
         quantity: { type: Number, required: true }
     }],
+
+    returns : [{
+        productId:{
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "Product",
+          required: true
+        },
+        size:{ type: String , require: true},
+        color: { type: String, required: true },
+        quantity: { type: Number, required: true },
+        refundAmount: { type: Number, required: false },
+        status: { type: String, enum: ["pending", "approved", "processed"], default: "pending" }
+    }],
     address: { type: String, required: false },
-    total: { type: Number, required: false },
+    total: { type: Number, required: true },
     status: { type: String, enum: ['placed', 'shipped', 'delivered', 'return'], default: 'placed' },
    
 });
