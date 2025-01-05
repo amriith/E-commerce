@@ -24,7 +24,21 @@ const userSchema =  mongoose.Schema({
               color: String,
                 quantity: Number
     }],
-    address: { type: String, required: false }
+    address: [
+        {
+            streetNumber: { type: String, required: true },
+            streetName: { type: String, required: true },
+            suburb: { type: String, required: true },
+            state: { 
+                type: String, 
+                required: true, 
+                enum: ['NSW', 'VIC', 'QLD', 'SA', 'WA', 'TAS', 'ACT', 'NT'], 
+            },
+            postcode: { type: String, required: true },
+            country: { type: String, default: "Australia" },
+            landmark: { type: String, default: "" },
+        }
+    ]
 })
 
 const accountSchema =new mongoose.Schema({
@@ -34,6 +48,7 @@ const accountSchema =new mongoose.Schema({
     required: true
     },
     address: { 
+        ref: "User",
         type: String,
          required: false 
         },
@@ -84,6 +99,10 @@ const OrderSchema = new mongoose.Schema({
         color: { type: String, required: true },
         quantity: { type: Number, required: true }
     }],
+    address: [{ type: String, ref: "User", required: true }],
+    total: { type: Number, required: true },
+    status: { type: String, enum: ['placed', 'shipped', 'delivered', 'return'], default: 'placed' },
+
 
     returns : [{
         productId:{
@@ -96,10 +115,7 @@ const OrderSchema = new mongoose.Schema({
         quantity: { type: Number, required: true },
         refundAmount: { type: Number, required: false },
         status: { type: String, enum: ["pending", "approved", "processed"], default: "pending" }
-    }],
-    address: { type: String, required: false },
-    total: { type: Number, required: true },
-    status: { type: String, enum: ['placed', 'shipped', 'delivered', 'return'], default: 'placed' },
+    }]
    
 });
 

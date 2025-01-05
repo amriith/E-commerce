@@ -6,6 +6,7 @@ const { User, Account } = require('../db');
 const { JWT_SECRET } = require('../config');
 const bcrypt = require("bcrypt");
 const {authMiddleWare} = require("../middleware");
+const { ObjectId } = require('mongoose').Types; 
 
 const signUpBody = z.object({
    firstName: z.string(),
@@ -168,6 +169,81 @@ router.put("/update", authMiddleWare, async (req, res)=>{
       }
 })
 
+router.post("/add-address", authMiddleWare, async (req, res) => {
+    const userId = req.userId;
+    const { address } = req.body;
+
+    try {
+        // Validate userId
+        if (!ObjectId.isValid(userId)) {
+            return res.status(400).json({ message: "Invalid userId" });
+        }
+
+        // Find the user
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        // Check if user can add more addresses
+        if (user.address.length >= 2) {
+            return res.status(400).json({
+                message: "You can only add up to 2 addresses.",
+            });
+        }
+        
+      
+        for (const newAddress of address){
+            const existingAddress = user.address.some(
+            (a) => a.streetNumber === newAddress.streetNumber &&        
+            a.streetName === newAddress.streetName &&
+            a.suburb === newAddress.suburb &&
+            a.state === newAddress.state &&
+            a.postcode === newAddress.postcode
+        );
+
+        if (existingAddress) {
+            return res.status(400).json({
+                message: "Duplicate address detected. Cannot add duplicate addresses.",
+            });
+        }
+            }
+            
+       
+        for (const addr of address){
+     
+            const validStates = ["NSW", "VIC", "QLD", "SA", "WA", "TAS", "ACT", "NT"];
+            if (!validStates.includes(addr.state)) {
+                return res.status(400).json({ message: "Invalid state value." });
+            }
+            user.address.push({
+                streetNumber: addr.streetNumber,
+                streetName: addr.streetName,
+                suburb: addr.suburb,
+                state: addr.state,
+                postcode: addr.postcode,
+                country: addr.country || "Australia",
+                landmark: addr.landmark || "",
+            });
+        }
+        
+
+        await user.save();
+
+        // Respond with success message
+        res.status(200).json({
+            message: "Address added successfully.",
+            address: user.address,
+        });
+    } catch (err) {
+        res.status(500).json({
+            message: "Internal server error",
+            error: err.message,
+        });
+    }
+});
+
+module.exports = router;
 
 
 module.exports = router;
