@@ -120,15 +120,24 @@ const OrderSchema = new mongoose.Schema({
    
 });
 
+const couponSchema= new Mongoose.Schema({
+    code : { type: String, required: true },
+    discount : { type: Number, required: true },
+    validity : { type: Date, required: true },
+    pin : { type: Number, required: true }
+})
+
 const Order = mongoose.model("Order", OrderSchema);
 const User = mongoose.model("User", userSchema);
 const Account= mongoose.model("Account", accountSchema);
 const Product = mongoose.model("Product", productSchema);
+const Coupon = mongoose.model("Coupon", couponSchema);
 module.exports= {
     User,
     Account,
     Product,
-    Order
+    Order,
+    Coupon
 }
 
 
