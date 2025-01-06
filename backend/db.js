@@ -37,6 +37,7 @@ const userSchema =  mongoose.Schema({
             postcode: { type: String, required: true },
             country: { type: String, default: "Australia" },
             landmark: { type: String, default: "" },
+            status: {type: String, enum:["primary", "secondary"], default: "secondary"}
         }
     ]
 })

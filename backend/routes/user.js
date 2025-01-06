@@ -192,7 +192,7 @@ router.post("/add-address", authMiddleWare, async (req, res) => {
             });
         }
         
-      
+     
         for (const newAddress of address){
             const existingAddress = user.address.some(
             (a) => a.streetNumber === newAddress.streetNumber &&        
@@ -200,7 +200,7 @@ router.post("/add-address", authMiddleWare, async (req, res) => {
             a.suburb === newAddress.suburb &&
             a.state === newAddress.state &&
             a.postcode === newAddress.postcode
-        );
+            );
 
         if (existingAddress) {
             return res.status(400).json({
@@ -216,6 +216,10 @@ router.post("/add-address", authMiddleWare, async (req, res) => {
             if (!validStates.includes(addr.state)) {
                 return res.status(400).json({ message: "Invalid state value." });
             }
+
+            if (user.address.length === 0) {
+                addr.status = "primary";
+            }
             user.address.push({
                 streetNumber: addr.streetNumber,
                 streetName: addr.streetName,
@@ -224,13 +228,13 @@ router.post("/add-address", authMiddleWare, async (req, res) => {
                 postcode: addr.postcode,
                 country: addr.country || "Australia",
                 landmark: addr.landmark || "",
+                status: addr.status || "secondary" 
             });
         }
         
 
         await user.save();
 
-        // Respond with success message
         res.status(200).json({
             message: "Address added successfully.",
             address: user.address,
