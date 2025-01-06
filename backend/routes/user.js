@@ -15,6 +15,16 @@ const signUpBody = z.object({
    password: z.string(),
    role: z.enum(['admin', 'user']).optional() 
 });
+const addressSchema = z.object({
+    streetNumber: z.string(),
+    streetName: z.string(),
+    suburb: z.string(),
+    state: z.string(),
+    postcode: z.string(),
+    country: z.string().optional(),
+    landmark: z.string().optional(),
+    status: z.string().optional()
+});
 
 router.post('/signup', async (req, res) => {
     const { success ,data} = signUpBody.safeParse(req.body);
@@ -178,23 +188,37 @@ router.post("/add-address", authMiddleWare, async (req, res) => {
         if (!ObjectId.isValid(userId)) {
             return res.status(400).json({ message: "Invalid userId" });
         }
+        const parsedResult = addressSchema.safeParse(address);
+        if (!parsedResult.success) {
+            return res.status(400).json({
+                message: "Invalid address data",
+                errors: parsedResult.error.errors,
+            });
+        }
 
         // Find the user
         const user = await User.findById(userId);
         if (!user) {
             return res.status(404).json({ message: "User not found" });
         }
-
+        // Wrap single address into an array
+        const addressArray = Array.isArray(address) ? address : [address];
+        for (const newAddress of addressArray){
         // Check if user can add more addresses
+
+        if (!newAddress.streetNumber || !newAddress.streetName || !newAddress.suburb || !newAddress.state || !newAddress.postcode) {
+            return res.status(400).json({
+                message: "Invalid address format. Ensure all required fields are provided.",
+            });
+
+        }
         if (user.address.length >= 2) {
             return res.status(400).json({
                 message: "You can only add up to 2 addresses.",
             });
         }
         
-     
-        for (const newAddress of address){
-            const existingAddress = user.address.some(
+    const existingAddress = user.address.some(
             (a) => a.streetNumber === newAddress.streetNumber &&        
             a.streetName === newAddress.streetName &&
             a.suburb === newAddress.suburb &&
@@ -207,28 +231,26 @@ router.post("/add-address", authMiddleWare, async (req, res) => {
                 message: "Duplicate address detected. Cannot add duplicate addresses.",
             });
         }
-            }
             
-       
-        for (const addr of address){
-     
-            const validStates = ["NSW", "VIC", "QLD", "SA", "WA", "TAS", "ACT", "NT"];
-            if (!validStates.includes(addr.state)) {
-                return res.status(400).json({ message: "Invalid state value." });
+               const validStates = ["NSW", "VIC", "QLD", "SA", "WA", "TAS", "ACT", "NT"];
+               if (!validStates.includes(newAddress.state)) {
+                return res.status(400).json({
+                    message: "Invalid state value. Use one of: " + validStates.join(", "),
+                });
             }
 
             if (user.address.length === 0) {
-                addr.status = "primary";
+                newAddress.status = "primary";
             }
             user.address.push({
-                streetNumber: addr.streetNumber,
-                streetName: addr.streetName,
-                suburb: addr.suburb,
-                state: addr.state,
-                postcode: addr.postcode,
-                country: addr.country || "Australia",
-                landmark: addr.landmark || "",
-                status: addr.status || "secondary" 
+                streetNumber: newAddress.streetNumber,
+                streetName: newAddress.streetName,
+                suburb: newAddress.suburb,
+                state: newAddress.state,
+                postcode: newAddress.postcode,
+                country: newAddress.country || "Australia",
+                landmark: newAddress.landmark || "",
+                status: newAddress.status || "secondary" 
             });
         }
         
@@ -247,7 +269,94 @@ router.post("/add-address", authMiddleWare, async (req, res) => {
     }
 });
 
-module.exports = router;
+router.post("/edit-address", authMiddleWare, async (req, res)=>{
+const userId = req.userId;
+const {address} = req.body; 
+
+try{
+
+    if(!ObjectId.isValid(userId)){
+        return res.status(400).json({
+            message: "Invalid User ID"
+        });
+    }   
+    const parsedResult = addressSchema.safeParse(address);
+        if (!parsedResult.success) {
+            return res.status(400).json({
+                message: "Invalid address data",
+                errors: parsedResult.error.errors,
+            });
+        }
+
+    const user = await User.findById(userId);
+    const addressArray = Array.isArray(address) ? address : [address];
+    for (const editAddress of addressArray){
+        const missingFields = [];
+
+    if (!editAddress.streetNumber) missingFields.push('streetNumber');
+    if (!editAddress.streetName) missingFields.push('streetName');
+    if (!editAddress.suburb) missingFields.push('suburb');
+    if (!editAddress.state) missingFields.push('state');
+    if (!editAddress.postcode) missingFields.push('postcode');
+    if (!editAddress.status) missingFields.push('status');      
+
+
+    if (missingFields.length > 0) {
+        return res.status(400).json({
+            message: "Invalid address format. Ensure all required fields are provided.",
+            missingFields: missingFields
+        });
+        }
+
+        const existingAddress = user.address.some(
+            (a) => a.streetNumber === editAddress.streetNumber &&        
+            a.streetName === editAddress.streetName &&
+            a.suburb === editAddress.suburb &&
+            a.state === editAddress.state &&
+            a.postcode === editAddress.postcode
+            );
+
+        if (existingAddress) {
+            return res.status(400).json({
+                message: "Duplicate address detected. Cannot add duplicate addresses.",
+            });
+        }
+        const validStates = ["NSW", "VIC", "QLD", "SA", "WA", "TAS", "ACT", "NT"];
+        if (!validStates.includes(editAddress.state)) {
+         return res.status(400).json({
+             message: "Invalid state value. Use one of: " + validStates.join(", "),
+         });
+     }
+     const addressToEdit = user.address.find((a) => a.status === editAddress.status);
+     if (!addressToEdit) {
+         return res.status(404).json({ message: `${editAddress.status} address not found.` });
+     }
+
+   
+     addressToEdit.streetNumber = editAddress.streetNumber || addressToEdit.streetNumber;
+     addressToEdit.streetName = editAddress.streetName || addressToEdit.streetName;
+     addressToEdit.suburb = editAddress.suburb || addressToEdit.suburb;
+     addressToEdit.state = editAddress.state || addressToEdit.state;
+     addressToEdit.postcode = editAddress.postcode || addressToEdit.postcode;
+     addressToEdit.country = editAddress.country || addressToEdit.country || "Australia";
+     addressToEdit.landmark = editAddress.landmark || addressToEdit.landmark || "";
+ }
+    await user.save();
+    return res.status(200).json({
+        message: "Address updated successfully",
+        address: user.address
+    });
+
+    }
+    catch(err){
+        res.status(500).json({
+            message: "Internal server error",
+            error: err.message
+        });
+    }
+
+})
+
 
 
 module.exports = router;
