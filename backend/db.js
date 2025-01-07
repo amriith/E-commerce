@@ -123,7 +123,7 @@ const OrderSchema = new mongoose.Schema({
 const couponSchema= new mongoose.Schema({
     coupon : { type: String, required: true },
     discount : { type: Number, required: true },
-     pin : { type: Number, required: true }
+     pin : { type: String, required: true }
 })
 
 const Order = mongoose.model("Order", OrderSchema);
