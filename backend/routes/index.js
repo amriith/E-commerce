@@ -3,7 +3,8 @@ const userRouter = require('./user');
 const productRouter = require('./product');
 const cartRouter = require('./cart');
 const orderRouter = require('./order'); 
-const coupounRouter=require('./Coupon'); 
+const coupounRouter = require('./coupon');
+ 
 const router = express.Router();
  
 
