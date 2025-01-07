@@ -120,11 +120,10 @@ const OrderSchema = new mongoose.Schema({
    
 });
 
-const couponSchema= new Mongoose.Schema({
-    code : { type: String, required: true },
+const couponSchema= new mongoose.Schema({
+    coupon : { type: String, required: true },
     discount : { type: Number, required: true },
-    validity : { type: Date, required: true },
-    pin : { type: Number, required: true }
+     pin : { type: Number, required: true }
 })
 
 const Order = mongoose.model("Order", OrderSchema);
