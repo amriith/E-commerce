@@ -22,8 +22,17 @@ const userSchema =  mongoose.Schema({
            productId :{ type: mongoose.Schema.Types.ObjectId, ref: "Product", required: true },
            size: String,
               color: String,
+              total: {type: Number, required:true},
                 quantity: Number
+              
     }],
+    cartTotal: { type: Number, default: 0 },
+    appliedCoupon: {
+        coupon: { type: String }, 
+        pin: { type: String }, 
+        discountAmount: { type: Number, default: 0 }, 
+        isApplied: { type: Boolean, default: false },
+    },
     address: [
         {
             streetNumber: { type: String, required: true },
@@ -123,7 +132,10 @@ const OrderSchema = new mongoose.Schema({
 const couponSchema= new mongoose.Schema({
     coupon : { type: String, required: true },
     discount : { type: Number, required: true },
-     pin : { type: String, required: true }
+     pin : { type: String, required: true },
+     expiryDate: { type: Date }, 
+     used: { type: Boolean, default: false },
+     createdAt: { type: Date, default: Date.now }
 })
 
 const Order = mongoose.model("Order", OrderSchema);

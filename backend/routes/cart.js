@@ -2,7 +2,7 @@ const express = require("express");
 const mongoose = require('mongoose');
 const router = express.Router();
 const {authMiddleWare} = require("../middleware");
-const {Product ,User,Order} = require("../db");   
+const {Product ,User,Order, Coupon} = require("../db");   
 const { ObjectId } = mongoose.Types;
 
 router.post("/add-to-cart", authMiddleWare, async (req, res) =>{
@@ -21,7 +21,7 @@ try{
         })
     }
     const variations = product.variations.find(v=> v.size === size && v.color === color);
-
+    const newTotal = product.price * quantity;
     if(!variations){
         return res.status(403).json({
             message: "Please select a valid size and color"
@@ -43,14 +43,15 @@ try{
 
     if(cartItem){
         cartItem.quantity += quantity
-        
+        cartItem.total = cartItem.quantity * product.price; 
     }
     else{
         user.cart.push({
             productId,
             size,
             color,
-            quantity
+            quantity,
+            total: newTotal
         })
        
     }
@@ -158,6 +159,8 @@ router.post("/remove-item", authMiddleWare, async (req,res)=>{
         if(!user || user.cart.length === 0){
             throw new Error("No items in cart/ User not found");
         }
+
+        let userTotal = 0;
         
         for (const cartItem of user.cart) {
            
@@ -169,23 +172,52 @@ router.post("/remove-item", authMiddleWare, async (req,res)=>{
         }
         if(productVariations.stock < cartItem.quantity){
             throw new Error(
-                `Not enough stock available for ${cartItem.productId.name}. Available stock: ${productVariation.stock}`
+                `Not enough stock available for ${cartItem.productId.name}. Available stock: ${productVariations.stock}`
             );
         }
+        userTotal += cartItem.quantity * cartItem.productId.price;
+        
         productVariations.stock -= cartItem.quantity;
         productVariations.reservedStock -= cartItem.quantity;
+
+       }
+
+
+        if (user.appliedCoupon?.isApplied){
+         const couponCheck = await Coupon.findOne({ 
+            coupon: user.appliedCoupon.coupon, 
+            pin: user.appliedCoupon.pin 
+        })
+        
+        if (!couponCheck || couponCheck.used) {
+            return res.status(400).json({ message: "Coupon already redeemed or invalid." });
+        }
+        couponCheck.used = true;
+        await couponCheck.save();
+        
+        userTotal -= user.appliedCoupon.discountAmount;
+
+         }
+       
+         
+        
       
        
+        const order = await Order.create( 
+            [
+            {
+                userId,
+                products: user.cart,
+                address: user.address,
+                total: userTotal,
+            },
+            ],
+        { session })
 
-        const order = await Order.create({
-            userId,
-           products : user.cart,
-           address: user.address,
-           total: user.cart.reduce((acc, item) => acc + cartItem.quantity * item.productId.price, 0)
-            })
-
-        await order.save({ session });
+      
+       
         user.cart = [];
+        user.appliedCoupon = null;
         await user.save({ session });
         await session.commitTransaction();
        
@@ -195,7 +227,7 @@ router.post("/remove-item", authMiddleWare, async (req,res)=>{
             orderId: order._id,
             total: order.total,
         });
-    } 
+     
 
     
  }
