@@ -57,6 +57,8 @@ try{
     }
     variations.reservedStock -= quantity;
     await user.save();
+ 
+    
     await product.save();
     res.status(200).json({
         message: "Product added to cart successfully"
@@ -210,6 +212,7 @@ router.post("/remove-item", authMiddleWare, async (req,res)=>{
                 products: user.cart,
                 address: user.address,
                 total: userTotal,
+
             },
             ],
         { session })
