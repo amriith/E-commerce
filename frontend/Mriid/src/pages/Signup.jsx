@@ -1,12 +1,13 @@
 import { Button } from "../components/Button";
 import { Inputbox } from "../components/Inputbox";
+import { PasswordInput } from "../components/PasswordInput";
 import { Thirdparty } from "../components/Thirdparty";
 
 export const Signup = () => {
     return (
 <div>
-<div className="flex justify-center grid place-items-center bg-gray-200  flex-col shadow-lg rounded-lg  w-[400px] md:w-[500px] mx-auto">
-<div className=" w-full rounded-lg text-center bg-gray-200  w-80 justify-center items-center p-2 h-max ">
+<div className="flex justify-center grid place-items-center bg-gray-200 object-scale-down flex-col shadow-lg rounded-lg   md:w-[400px] h-[500px] mx-auto">
+<div className=" w-full rounded-lg text-center bg-gray-200   justify-center items-center p-2 h-max ">
 <p className="mb-4 text-sm">Sign up with</p> 
 <div className="btn-wrapper text-center relative flex flex-col min-w-0 break-words items-center w-full mb-2  rounded-lg bg-blueGray-200 border-0">
 <Thirdparty/>  
@@ -18,7 +19,7 @@ export const Signup = () => {
  <Inputbox placeholder={"Name"} label={"First Name"}/>
  <Inputbox placeholder={"Last Name"} label={"Last Name"}/>
  <Inputbox placeholder={"Email"} label={"Email"}/>
- <Inputbox placeholder={"Password"} label={"Password"} />
+ <PasswordInput placeholder={"Password"} label={"Password"} />
  <Button label={"Create Account"} /> 
 
 
