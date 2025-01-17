@@ -6,26 +6,30 @@ export const PasswordInput = ({ onChange, label, placeholder }) => {
     return (
         <div className="relative w-full">
             {/* Label */}
-            {label && <label className="block text-sm font-medium mb-2 text-left">{label}</label>}
+            {label && (
+                <label className="block text-xs font-medium mb-1 text-left">
+                    {label}
+                </label>
+            )}
 
             {/* Password Input */}
             <input
                 type={isPasswordVisible ? "text" : "password"} // Toggles between "password" and "text"
                 onChange={onChange}
                 placeholder={placeholder}
-                className="rounded-lg bg-gray-100 w-full text-black px-4 py-2 pr-12 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                className="rounded-md bg-gray-100 w-full text-black px-2 py-1 pr-8 text-sm focus:ring-1 focus:ring-blue-500 focus:outline-none"
             />
 
             {/* Toggle Button */}
             <button
                 type="button"
                 onClick={() => setIsPasswordVisible(!isPasswordVisible)} // Toggle state
-                className="absolute inset-y-0 right-3 flex items-center justify-center text-gray-500 hover:text-blue-500"
+                className="absolute inset-y-0 right-2 flex items-center justify-center text-gray-500 hover:text-blue-500"
             >
                 {isPasswordVisible ? (
                     <svg
                         xmlns="http://www.w3.org/2000/svg"
-                        className="h-5 w-5"
+                        className="h-4 w-4"
                         fill="none"
                         viewBox="0 0 24 24"
                         stroke="currentColor"
@@ -45,7 +49,7 @@ export const PasswordInput = ({ onChange, label, placeholder }) => {
                 ) : (
                     <svg
                         xmlns="http://www.w3.org/2000/svg"
-                        className="h-5 w-5"
+                        className="h-4 w-4"
                         fill="none"
                         viewBox="0 0 24 24"
                         stroke="currentColor"
