@@ -7,7 +7,7 @@ export const PasswordInput = ({ onChange, label, placeholder }) => {
         <div className="relative w-full">
             {/* Label */}
             {label && (
-                <label className="block text-xs font-medium mb-1 text-left">
+                <label className="block text-lg font-medium mb-1 text-left">
                     {label}
                 </label>
             )}
@@ -17,7 +17,7 @@ export const PasswordInput = ({ onChange, label, placeholder }) => {
                 type={isPasswordVisible ? "text" : "password"} // Toggles between "password" and "text"
                 onChange={onChange}
                 placeholder={placeholder}
-                className="rounded-md bg-gray-100 w-full text-black px-2 py-1 pr-8 text-sm focus:ring-1 focus:ring-blue-500 focus:outline-none"
+                className="rounded-md bg-gray-100 w-full text-black px-2 py-1 pr-8 text-lg focus:ring-1 focus:ring-blue-500 focus:outline-none"
             />
 
             {/* Toggle Button */}
