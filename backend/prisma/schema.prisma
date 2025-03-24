@@ -1,0 +1,133 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id String @id @default(uuid())
+  username String  @unique
+  password String 
+  firstName String
+  lastName String
+  role UserRole @default(USER)
+ cart Cart[]
+  cartTotal Float @default(0)
+  appliedCoupon String?
+ orders Order[]
+ address Address[]
+} 
+
+model Address {
+  id String @default (uuid()) @id 
+  user User @relation(fields: [userId] , references : [id])
+  userId String
+  streetNumber String
+  streetName String
+  suburb String 
+  state  String
+  postcode String
+  country String  @default("Australia")
+  landmark String?
+  status Status @default(primary)
+  orders Order[]
+}
+model Cart {
+  id String @default(uuid()) @id
+  user User @relation(fields: [userId], references: [id])
+  userId String
+  productVariation ProductVariation @relation(fields: [productVariationId], references: [id])
+  productVariationId String
+  quantity Int
+  total Float
+}
+
+model Product {
+  id String @id @default(uuid())
+  name String
+  description String
+  details String
+  price Float
+  category String
+  subCategory String
+  imageUrl String
+  variations ProductVariation[] 
+}
+
+model ProductVariation {
+  id String @id @default(uuid())
+  product Product @relation(fields: [productId], references: [id])
+  productId String
+  size String
+  color String
+  stock Int
+  reservedStock Int?
+  orderItems OrderItem[]
+  cartItems Cart[]
+  returns Return[]
+}
+
+model Order {
+  id String @id @default(uuid())
+  user User @relation(fields: [userId], references: [id])
+  userId String
+  orderItems OrderItem[]
+  address Address @relation(fields: [addressId], references: [id])
+  addressId String
+  total Float
+  status OrderStatus @default(placed)
+  returns Return[]
+}
+
+model OrderItem {
+  id String @id @default(uuid())
+  order Order @relation(fields: [orderId], references: [id])
+  orderId String
+  productVariation ProductVariation @relation(fields: [productVariationId], references: [id])
+  productVariationId String
+  quantity Int
+}
+
+model Return {
+  id String @id @default(uuid())
+  order Order @relation(fields: [orderId], references : [id])
+  orderId String
+  productVariation ProductVariation @relation(fields: [variationId], references: [id]) 
+  variationId String
+  quantity Int 
+  refundAmount Float
+  status ReturnStatus @default(pending)
+}
+
+enum UserRole {
+  USER
+  ADMIN
+}
+
+enum Status {
+  primary
+  secondary
+}
+
+enum OrderStatus {
+  placed 
+  shipped 
+  delivered
+  cancelled 
+  return
+}
+
+enum ReturnStatus {
+  pending
+  approved
+  rejected
+}
